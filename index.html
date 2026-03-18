@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTET Geomorphology Master Quiz</title>
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #eef2f7; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 10px; }
+        #quiz-container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); width: 100%; max-width: 650px; text-align: center; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .timer { font-size: 1.1rem; font-weight: bold; color: #e74c3c; background: #ffdada; padding: 5px 15px; border-radius: 20px; }
+        .progress { font-size: 1rem; color: #555; font-weight: bold; }
+        .question { font-size: 1.4rem; margin-bottom: 25px; color: #2c3e50; line-height: 1.5; text-align: left; }
+        .options { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        button { padding: 15px; font-size: 1.05rem; border: 2px solid #3498db; background: #fff; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; text-align: left; font-family: inherit; }
+        button:hover { background: #3498db; color: white; transform: translateY(-2px); }
+        button.correct { background: #2ecc71 !important; color: white; border-color: #27ae60; }
+        button.wrong { background: #e74c3c !important; color: white; border-color: #c0392b; }
+        #score-screen { display: none; padding: 30px; }
+        .final-score-val { font-size: 3rem; color: #3498db; font-weight: bold; margin: 20px 0; }
+        .restart-btn { background: #3498db; color: white; border: none; padding: 15px 30px; font-size: 1.1rem; border-radius: 8px; width: 100%; text-align: center; }
+        .restart-btn:hover { background: #2980b9; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div id="quiz-container">
+    <div id="game">
+        <div class="header">
+            <div class="progress">প্রশ্ন: <span id="q-num">1</span>/40</div>
+            <div class="timer">⏱ <span id="time">15</span>s</div>
+        </div>
+        <div class="question" id="question-text">প্রশ্ন লোড হচ্ছে...</div>
+        <div class="options" id="options-container"></div>
+    </div>
+
+    <div id="score-screen">
+        <h2>🎉 কুইজ শেষ!</h2>
+        <p>আপনার ফলাফল:</p>
+        <div class="final-score-val"><span id="final-score">0</span> / 40</div>
+        <p id="feedback-msg"></p>
+        <button class="restart-btn" onclick="location.reload()">আবার শুরু করুন</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        // 1-20 (Previous set)
+        { q: "পৃথিবীর অভ্যন্তরীণ শক্তির ফলে কোনটি ঘটে?", a: ["ক্ষয়", "পর্বত গঠন", "বায়ুক্ষয়", "নদীসঞ্চয়"], c: 1 },
+        { q: "নদীর বৃদ্ধাবস্থা (Old stage) এ কোন ভূমিরূপ দেখা যায়?", a: ["V-shaped valley", "Waterfall", "Oxbow lake", "Gorge"], c: 2 },
+        { q: "আবহবিকার (Weathering) বলতে বোঝায়—", a: ["শিলার পরিবহন", "শিলার ভাঙ্গন একই স্থানে", "শিলার সঞ্চয়", "নদীর প্রবাহ"], c: 1 },
+        { q: "নিম্নের কোনটি হিমবাহ দ্বারা সৃষ্ট ভূমিরূপ?", a: ["Delta", "Moraine", "Levee", "Flood plain"], c: 1 },
+        { q: "নদীর যৌবন পর্যায়ে কোন ভূমিরূপ দেখা যায়?", a: ["Flood plain", "Meander", "Waterfall", "Delta"], c: 2 },
+        { q: "বায়ুর ক্ষয়ের ফলে কোনটি তৈরি হয়?", a: ["Mushroom rock", "Delta", "Moraine", "Levee"], c: 0 },
+        { q: "Mass Movement এর প্রধান কারণ কী?", a: ["বায়ু", "নদী", "মাধ্যাকর্ষণ", "সূর্য"], c: 2 },
+        { q: "কোনটি সঞ্চয়জাত ভূমিরূপ?", a: ["Gorge", "Canyon", "Delta", "Cliff"], c: 2 },
+        { q: "পৃথিবীর বাহ্যিক শক্তির প্রধান উৎস কী?", a: ["চাঁদ", "সূর্য", "বায়ু", "সমুদ্র"], c: 1 },
+        { q: "ডেনুডেশন (Denudation) বলতে বোঝায়—", a: ["সঞ্চয়", "ক্ষয় ও অপসারণ", "আগ্নেয়গিরি", "ভূমিকম্প"], c: 1 },
+        { q: "V-আকৃতির উপত্যকা কোন প্রক্রিয়ায় তৈরি হয়?", a: ["হিমবাহ", "নদী ক্ষয়", "বায়ুক্ষয়", "সমুদ্রক্ষয়"], c: 1 },
+        { q: "নদীর বাঁককে কী বলা হয়?", a: ["Delta", "Meander", "Gorge", "Canyon"], c: 1 },
+        { q: "সমুদ্রের ঢেউয়ের ক্ষয়ে কোন ভূমিরূপ তৈরি হয়?", a: ["Cliff", "Delta", "Levee", "Floodplain"], c: 0 },
+        { q: "নিম্নের কোনটি নদীর সঞ্চয়জাত ভূমিরূপ?", a: ["Gorge", "Waterfall", "Floodplain", "Canyon"], c: 2 },
+        { q: "চুনাপাথর অঞ্চলে তৈরি ভূমিরূপকে কী বলা হয়?", a: ["Karst topography", "Desert topography", "Coastal topography", "Glacial topography"], c: 0 },
+        { q: "স্ট্যালাকটাইট কোথায় দেখা যায়?", a: ["নদীতে", "মরুভূমিতে", "গুহায়", "পাহাড়ে"], c: 2 },
+        { q: "গ্লেসিয়াল উপত্যকার আকৃতি কেমন হয়?", a: ["V-shaped", "U-shaped", "Circular", "Triangular"], c: 1 },
+        { q: "নিচের কোনটি হিমবাহের সঞ্চয়জাত ভূমিরূপ?", a: ["Drumlin", "Canyon", "Gorge", "Waterfall"], c: 0 },
+        { q: "কোনটি বায়ু দ্বারা সৃষ্ট সঞ্চয়জাত ভূমিরূপ?", a: ["Barchan dune", "Gorge", "Cliff", "Delta"], c: 0 },
+        { q: "প্লেট টেকটোনিকস বলতে বোঝায়—", a: ["নদীর গতি", "ভূত্বকের প্লেটের গতি", "বায়ুর গতি", "সমুদ্রস্রোত"], c: 1 },
+        
+        // 21-40 (New set)
+        { q: "কোনটি রাসায়নিক আবহবিকার?", a: ["Oxidation", "Frost action", "Pressure release", "Exfoliation"], c: 0 },
+        { q: "গর্জ (Gorge) সাধারণত কোথায় তৈরি হয়?", a: ["নদীর উপরের প্রবাহে", "নদীর নিম্ন প্রবাহে", "মরুভূমিতে", "সমুদ্রে"], c: 0 },
+        { q: "কোনটি সমুদ্রের সঞ্চয়জাত ভূমিরূপ?", a: ["Arch", "Stack", "Spit", "Cliff"], c: 2 },
+        { q: "কোন প্রক্রিয়ায় শিলা একই স্থানে ভেঙে যায়?", a: ["Weathering", "Erosion", "Transportation", "Deposition"], c: 0 },
+        { q: "Mass movement এর উদাহরণ কোনটি?", a: ["River erosion", "Landslide", "Delta formation", "Meander"], c: 1 },
+        { q: "নিম্নের কোনটি নদীর ক্ষয়জাত ভূমিরূপ?", a: ["Oxbow lake", "Alluvial fan", "Canyon", "Delta"], c: 2 },
+        { q: "মরুভূমিতে বায়ুর ক্ষয়ে কোনটি তৈরি হয়?", a: ["Pedestal rock", "Moraine", "Levee", "Delta"], c: 0 },
+        { q: "ডেল্টা সাধারণত কোথায় তৈরি হয়?", a: ["নদীর উৎসে", "নদীর মোহনায়", "পাহাড়ে", "মরুভূমিতে"], c: 1 },
+        { q: "কোন প্রক্রিয়ায় পর্বত সৃষ্টি হয়?", a: ["Orogenic movement", "Weathering", "Deposition", "Erosion"], c: 0 },
+        { q: "এপিরোজেনিক গতি বলতে বোঝায়—", a: ["পর্বত গঠন", "বৃহৎ ভূখণ্ডের ধীর উত্থান বা অবনমন", "নদীর ক্ষয়", "বায়ুর ক্ষয়"], c: 1 },
+        { q: "কোনটি নদীর ক্ষয়জাত ভূমিরূপ?", a: ["Delta", "Levee", "Gorge", "Floodplain"], c: 2 },
+        { q: "নিচের কোনটি নদীর সঞ্চয়জাত ভূমিরূপ?", a: ["Alluvial fan", "Canyon", "Waterfall", "Gorge"], c: 0 },
+        { q: "হিমবাহের দ্বারা তৈরি ধারালো পর্বতশৃঙ্গকে কী বলা হয়?", a: ["Horn", "Delta", "Pediplain", "Cliff"], c: 0 },
+        { q: "বায়ু ক্ষয়ের ফলে কোন ভূমিরূপ তৈরি হয়?", a: ["Pediplain", "Delta", "Moraine", "Floodplain"], c: 0 },
+        { q: "সমুদ্রের ঢেউয়ের ক্ষয়ে গুহা তৈরি হলে তাকে কী বলা হয়?", a: ["Sea cave", "Delta", "Moraine", "Levee"], c: 0 },
+        { q: "নদীর তীরে প্রাকৃতিক বাঁধকে কী বলা হয়?", a: ["Levee", "Gorge", "Canyon", "Cirque"], c: 0 },
+        { q: "গ্লেসিয়াল ক্ষয়ের ফলে কোনটি তৈরি হয়?", a: ["Cirque", "Delta", "Spit", "Levee"], c: 0 },
+        { q: "সমুদ্রের ঢেউয়ের ক্ষয়ে আর্চ তৈরি হওয়ার পর ভেঙে গেলে কী তৈরি হয়?", a: ["Stack", "Delta", "Levee", "Floodplain"], c: 0 },
+        { q: "মরুভূমিতে বাতাসের সঞ্চয়ে কোন ভূমিরূপ তৈরি হয়?", a: ["Sand dune", "Gorge", "Delta", "Moraine"], c: 0 },
+        { q: "গুহার ছাদ থেকে ঝুলে থাকা চুনাপাথরের গঠনকে কী বলা হয়?", a: ["Stalactite", "Stalagmite", "Moraine", "Drumlin"], c: 0 }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+    let timeLeft = 15;
+    let timerInterval;
+
+    function loadQuestion() {
+        clearInterval(timerInterval);
+        if(currentQ >= quizData.length) {
+            showScore();
+            return;
+        }
+
+        timeLeft = 15;
+        document.getElementById("time").innerText = timeLeft;
+        document.getElementById("q-num").innerText = currentQ + 1;
+        document.getElementById("question-text").innerText = quizData[currentQ].q;
+        
+        const optionsContainer = document.getElementById("options-container");
+        optionsContainer.innerHTML = "";
+
+        quizData[currentQ].a.forEach((opt, index) => {
+            const btn = document.createElement("button");
+            btn.innerText = (index + 1) + ". " + opt;
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById("time").innerText = timeLeft;
+            if(timeLeft <= 0) {
+                currentQ++;
+                loadQuestion();
+            }
+        }, 1000);
+    }
+
+    function checkAnswer(idx, btn) {
+        clearInterval(timerInterval);
+        const correctIdx = quizData[currentQ].c;
+        const allBtns = document.querySelectorAll("#options-container button");
+        
+        allBtns.forEach(b => b.disabled = true);
+
+        if(idx === correctIdx) {
+            btn.classList.add("correct");
+            score++;
+        } else {
+            btn.classList.add("wrong");
+            allBtns[correctIdx].classList.add("correct");
+        }
+
+        setTimeout(() => {
+            currentQ++;
+            loadQuestion();
+        }, 1500);
+    }
+
+    function showScore() {
+        document.getElementById("game").style.display = "none";
+        document.getElementById("score-screen").style.display = "block";
+        document.getElementById("final-score").innerText = score;
+        
+        let msg = "";
+        if(score === 40) msg = "অসাধারণ! আপনি ভূ-প্রকৃতিবিদ্যার বস!";
+        else if(score >= 30) msg = "খুব ভালো প্রস্তুতি! এভাবেই চালিয়ে যান।";
+        else if(score >= 20) msg = "আরেকটু রিভিশন দরকার।";
+        else msg = "আবার ভালো করে পড়ার পরামর্শ রইলো।";
+        document.getElementById("feedback-msg").innerText = msg;
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
